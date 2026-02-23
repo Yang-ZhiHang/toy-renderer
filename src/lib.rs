@@ -3,6 +3,7 @@ pub mod buffer;
 pub mod bvh;
 pub mod camera;
 pub mod color;
+pub mod image;
 pub mod interval;
 pub mod light;
 pub mod material;

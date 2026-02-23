@@ -81,7 +81,7 @@ impl Renderer {
 
         // Start ray interval above zero (1e-3) to avoid shadow acne.
         match self.intersect(ray, Interval::new(1e-3, f32::INFINITY)) {
-            None => self.scene.background,
+            None => self.scene.background.sample(ray.dir),
             Some(rec) => {
                 let mut color = rec.material().emittance * rec.material().color;
                 let v = -ray.dir;
@@ -191,8 +191,9 @@ impl Renderer {
                 pb.inc(1);
                 row_pixels
             })
+            .flatten()
             .collect();
-        buffer.extend(colors);
+        buffer.add_samples(colors);
         pb.finish_with_message("Done!");
     }
 

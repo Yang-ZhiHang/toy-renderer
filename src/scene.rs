@@ -1,5 +1,9 @@
-use crate::color::Color;
+use image::ImageReader;
+
+use crate::color::{self, Color};
+use crate::image::HdrImage;
 use crate::light::Light;
+use crate::math::Vec3;
 use crate::{bvh::BvhNode, object::Object};
 
 #[derive(Default)]
@@ -14,7 +18,7 @@ pub struct Scene {
     pub bvh: Option<BvhNode>,
 
     /// The background color of the scene
-    pub background: Color,
+    pub background: Background,
 }
 
 impl Scene {
@@ -24,8 +28,8 @@ impl Scene {
     }
 
     /// Set the background of the scene.
-    pub const fn background(mut self, color: Color) -> Self {
-        self.background = color;
+    pub fn background(mut self, background: Background) -> Self {
+        self.background = background;
         self
     }
 
@@ -68,5 +72,67 @@ impl Scene {
             self.bvh = Some(BvhNode::build(self.objects.clone()));
         }
         self
+    }
+}
+
+pub enum Background {
+    /// Solid color
+    Color(Color),
+    /// Panorama image
+    Image(HdrImage),
+}
+
+impl Default for Background {
+    fn default() -> Self {
+        Self::Color(color::BLACK)
+    }
+}
+
+impl Background {
+    /// Create `Background` from solid color.
+    pub fn from_color(color: Color) -> Self {
+        Self::Color(color)
+    }
+
+    /// Create `Background` from a panorama image path.
+    /// High dynamic range image usually stored in disk using RGBE compression algorithm.
+    /// RGBE uses 4 bytes(u8) to analog float.
+    /// Firstly, We need read and decode the image.
+    /// Then, get the pixel into array and create `Background` struct.
+    pub fn from_hdr(path: &str) -> Self {
+        // Read and decode.
+        let img = ImageReader::open(path)
+            .expect("Failed to open file")
+            .decode()
+            .expect("Failed to decode image");
+        // Get pixels into array, BTW width and height.
+        let (width, height, pixels) = match img {
+            image::DynamicImage::ImageRgb32F(inner) => {
+                let (w, h) = inner.dimensions();
+                (w, h, inner.into_raw())
+            }
+            _ => {
+                let inner = img.to_rgb32f();
+                let (w, h) = inner.dimensions();
+                (w, h, inner.into_raw())
+            }
+        };
+        // Create `HdrImage` struct.
+        Self::Image(HdrImage::new(
+            width,
+            height,
+            pixels
+                .chunks_exact(3)
+                .map(|p| Color::new(p[0], p[1], p[2]))
+                .collect(),
+        ))
+    }
+
+    /// Get the color of background in specified ray direction.
+    pub fn sample(&self, dir: Vec3) -> Color {
+        match self {
+            Self::Color(c) => *c,
+            Self::Image(image) => image.sample(dir),
+        }
     }
 }

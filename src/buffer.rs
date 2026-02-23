@@ -11,29 +11,34 @@ pub struct Buffer {
     height: u32,
 
     /// The sample colors of image.
+    /// The first index: the location of pixel in (y * width + x)
+    /// The second index: the color of different iteration rounds.
+    /// TODO: support for different iteration rounds to be implemented.
     samples: Vec<Vec<Color>>,
 }
 
 impl Buffer {
     /// Create a empty buffer with width and height.
-    pub const fn new(width: u32, height: u32) -> Self {
+    pub fn new(width: u32, height: u32) -> Self {
         Self {
             width,
             height,
-            samples: Vec::new(),
+            samples: vec![vec![]; (width * height) as usize],
         }
     }
 
-    /// Push a color into the buffer.
-    pub fn push(&mut self, x: u32, y: u32, color: Color) {
+    /// Push a color of new iteration round into the buffer.
+    pub fn add_sample(&mut self, x: u32, y: u32, color: Color) {
         assert!(x < self.width && y < self.height, "Invalid pixel location!");
         let index = (y * self.width + x) as usize;
         self.samples[index].push(color);
     }
 
     /// Extend a list of colors into the buffer.
-    pub fn extend(&mut self, colors: Vec<Vec<Color>>) {
-        self.samples.extend(colors);
+    pub fn add_samples(&mut self, colors: Vec<Color>) {
+        for (index, color) in colors.iter().enumerate() {
+            self.samples[index].push(*color);
+        }
     }
 
     /// Transite the buffer into rgb image.
@@ -41,7 +46,7 @@ impl Buffer {
         let mut buf = Vec::new();
         for y in 0..self.height {
             for x in 0..self.width {
-                let color = self.samples[y as usize][x as usize];
+                let color = self.get_color(x, y);
                 let [r, g, b] = color_bytes(color);
                 buf.push(r);
                 buf.push(g);
@@ -49,5 +54,13 @@ impl Buffer {
             }
         }
         ImageBuffer::from_raw(self.width, self.height, buf).expect("Incorrect image size.")
+    }
+
+    /// Get the average color in iteration rounds color.
+    pub fn get_color(&self, x: u32, y: u32) -> Color {
+        let index = (y * self.width + x) as usize;
+        let color: Color = self.samples[index].iter().sum();
+        let count = self.samples[index].len();
+        color / count as f32
     }
 }
