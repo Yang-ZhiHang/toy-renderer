@@ -204,6 +204,25 @@ impl Renderer {
         self.sample(self.num_samples, &mut buffer);
         buffer.image()
     }
+
+    /// Render the image for given scene and call customized function for each epoch.
+    pub fn iterative_render<F>(&self, interval: u32, callback: F)
+    where
+        F: Fn(u32, &Buffer),
+    {
+        let mut buffer = Buffer::new(self.width, self.height);
+        // The accumulate value is used in callback to get progress information.
+        let mut iterations_acc = 0;
+        // The max number to sample is `self.samples`, so we need limit it.
+        // For each epoch, the sample result will be stored in corresponding pxiel position in `Buffer` which is
+        // flatten pixel color array.
+        while iterations_acc < self.num_samples {
+            let step = interval.min(self.num_samples - iterations_acc);
+            self.sample(step, &mut buffer);
+            iterations_acc += step;
+            callback(iterations_acc, &buffer);
+        }
+    }
 }
 
 impl Hittable for Renderer {
