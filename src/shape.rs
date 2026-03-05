@@ -10,8 +10,6 @@ use crate::{
     math::{Axis, DPoint3, Ray},
 };
 
-// TODO: Add constant medium to reach volume fog.
-// pub mod constant_medium;
 pub mod cube;
 pub mod quad;
 pub mod sphere;

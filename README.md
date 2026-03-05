@@ -1,6 +1,6 @@
-# Path Tracing Renderer
+# Rust Path Tracer
 
-The project is a simple path tracing renderer implemented in `Rust` language. It demonstrates basic concepts of path tracing, including scene setup, camera configuration, and rendering.
+The project is a simple *path tracing* renderer implemented in `Rust` language. It demonstrates basic concepts of path tracing, including scene setup, camera configuration, and rendering.
 
 ## Features
 
@@ -8,11 +8,7 @@ The project is a simple path tracing renderer implemented in `Rust` language. It
 - [x] Supports rendering the images as `PNG` format.
 - [x] Uses BSDF-based microfacet model materials.
 - [x] Support to set the shutting time for motion blur effects.
-
-## Future Work
-
-- [ ] Add texture system and constant medium for the BSDF-based(current) material system.
-- [ ] Add support for GPU acceleration using `wgpu`.
+- [x] Support to perform multiple rounds of rendering (iterative render).
 
 ## Attention
 

@@ -6,14 +6,11 @@ use crate::color::{Color, color_bytes};
 pub struct Buffer {
     /// The width of image.
     width: u32,
-
     /// The height of image.
     height: u32,
-
     /// The sample colors of image.
     /// The first index: the location of pixel in (y * width + x)
     /// The second index: the color of different iteration rounds.
-    /// TODO: support for different iteration rounds to be implemented.
     samples: Vec<Vec<Color>>,
 }
 

@@ -15,6 +15,6 @@ outputs
 examples
 
 # Others
-TODO.md
+logs.md
 justfile
 Cargo.lock
